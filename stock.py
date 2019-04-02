@@ -1,6 +1,8 @@
 from tkinter import *
 from tkinter import filedialog
 import csv
+import numpy as np
+# import matplotlib.pyplot as plt
 
 root = Tk()
 
@@ -12,18 +14,41 @@ def load():
                                      title="Choose a file."
                                      )
     print(dir)
-    global stockData
+    global stockData, dateRangeData
     with open(dir) as f:
         stockData = [{k: v for k, v in row.items()}
                      for row in csv.DictReader(f, skipinitialspace=True)]
     print(stockData)
+
+    dateRangeData["startDate"] = stockData[0]["Date"]
+    dateRangeData["endDate"] = stockData[-1]["Date"]
+    dateRangeData["high"] = float(stockData[0]["Close"])
+    dateRangeData["low"] = float(stockData[0]["Close"])
+    total = 0
+    for i in stockData:
+        if float(i["Close"]) > dateRangeData["high"]:
+            dateRangeData["high"] = float(i["Close"])
+        if float(i["Close"]) < dateRangeData["low"]:
+            dateRangeData["low"] = float(i["Close"])
+        total += float(i["Close"])
+
+    dateRangeData["avg"] = total/len(stockData)
+    print(dateRangeData)
+    date_label_content.config(text='{}   to  {} / {} days'.format(
+        dateRangeData["startDate"], dateRangeData["endDate"], len(stockData)))
+    high_label_content.config(text=dateRangeData["high"])
+    low_label_content.config(text=dateRangeData["low"])
+    avg_label_content.config(text=dateRangeData["avg"])
     console_label_body.config(text='load from:' + dir)
 
 
 def clear():
     global stockData
     stockData = []
-    print(stockData)
+    date_label_content.config(text='')
+    high_label_content.config(text='')
+    low_label_content.config(text='')
+    avg_label_content.config(text='')
     console_label_body.config(text='data cleard')
 
 
@@ -98,14 +123,22 @@ maxy_label.grid(row=0, column=6)
 
 grid_frame = Frame(review_frame)
 grid_frame.grid(row=3, column=0, sticky='NW')
-day_label = Label(grid_frame, text='Day Range: ', width='20')
-day_label.grid(row=0, column=0)
+date_label = Label(grid_frame, text='Date Range: ', width='20')
+date_label_content = Label(grid_frame, width='50')
+date_label.grid(row=0, column=0)
+date_label_content.grid(row=0, column=1)
 high_label = Label(grid_frame, text='High: ', width='20')
+high_label_content = Label(grid_frame, width='20')
 high_label.grid(row=1, column=0)
+high_label_content.grid(row=1, column=1)
 low_label = Label(grid_frame, text='Low: ', width='20')
 low_label.grid(row=2, column=0)
+low_label_content = Label(grid_frame, width='20')
+low_label_content.grid(row=2, column=1)
 avg_label = Label(grid_frame, text='Avg: ', width='20')
 avg_label.grid(row=3, column=0)
+avg_label_content = Label(grid_frame, width='20')
+avg_label_content.grid(row=3, column=1)
 
 console_label_header = Label(console_frame, height=1,
                              text='Logs: ', width=90, bg='gray95')
@@ -142,6 +175,8 @@ console_frame.grid(row=2, column=0, sticky='NW')
 
 # initialize stock data
 stockData = []
+dateRangeData = {"startDate": "", "endDate": "",
+                 "high": "", "low": "", "avg": ""}
 
 
 mainloop()
