@@ -3,6 +3,8 @@ from tkinter import filedialog
 import csv
 import numpy as np
 # import matplotlib.pyplot as plt
+import pandas as pd
+from datetime import datetime
 
 root = Tk()
 
@@ -13,7 +15,6 @@ def load():
                                                 ("All Files", "*.*")),
                                      title="Choose a file."
                                      )
-    print(dir)
     global stockData, dateRangeData
     with open(dir) as f:
         stockData = [{k: v for k, v in row.items()}
