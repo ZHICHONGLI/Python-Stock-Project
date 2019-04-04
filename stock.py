@@ -2,10 +2,14 @@ from tkinter import *
 from tkinter import filedialog
 import csv
 import numpy as np
-# import matplotlib.pyplot as plt
 import pandas as pd
 from datetime import datetime
-
+import matplotlib as mpl
+mpl.use('TkAgg')
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
+import matplotlib.dates as mdates
+# from matplotlib.finance import candlestick_ohlc
 root = Tk()
 
 
@@ -33,7 +37,7 @@ def load():
             dateRangeData["low"] = float(i["Close"])
         total += float(i["Close"])
 
-    dateRangeData["avg"] = total/len(stockData)
+    dateRangeData["avg"] = total / len(stockData)
     print(dateRangeData)
     date_label_content.config(text='{}   to  {} / {} days'.format(
         dateRangeData["startDate"], dateRangeData["endDate"], len(stockData)))
@@ -66,10 +70,10 @@ def log_motion_event(event):
         mouse_y = y
         log_drag = True
         return
-    x1 += (x-mouse_x)
-    x2 += (x-mouse_x)
-    y1 += (y-mouse_y)
-    y2 += (y-mouse_y)
+    x1 += (x - mouse_x)
+    x2 += (x - mouse_x)
+    y1 += (y - mouse_y)
+    y2 += (y - mouse_y)
     console_canvas.coords(rect, x1, y1, x2, y2)
     mouse_x = x
     mouse_y = y
