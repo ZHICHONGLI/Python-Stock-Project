@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import matplotlib.dates as mdates
 # from matplotlib.finance import candlestick_ohlc
+import analyze
+
 root = Tk()
 
 
@@ -19,46 +21,44 @@ def load():
                                                 ("All Files", "*.*")),
                                      title="Choose a file."
                                      )
-    global stockData, dateRangeData
-    with open(dir) as f:
-        stockData = [{k: v for k, v in row.items()}
-                     for row in csv.DictReader(f, skipinitialspace=True)]
-    print(stockData)
+    global stockData, dateRangeData, adjCloseData
+    if dir :
+        with open(dir) as f:
+            stockData = [{k: v for k, v in row.items()}
+                        for row in csv.DictReader(f, skipinitialspace=True)]
+        print(stockData)
+        adjCloseData = pd.read_csv(dir, usecols=['Adj Close'])
+        dateRangeData = analyze.getDateRangeData(stockData)
 
-    dateRangeData["startDate"] = stockData[0]["Date"]
-    dateRangeData["endDate"] = stockData[-1]["Date"]
-    dateRangeData["high"] = float(stockData[0]["Close"])
-    dateRangeData["low"] = float(stockData[0]["Close"])
-    total = 0
-    for i in stockData:
-        if float(i["Close"]) > dateRangeData["high"]:
-            dateRangeData["high"] = float(i["Close"])
-        if float(i["Close"]) < dateRangeData["low"]:
-            dateRangeData["low"] = float(i["Close"])
-        total += float(i["Close"])
+        print(dateRangeData)
+        date_label_content.config(text='{}   to  {} / {} days'.format(
+            dateRangeData["startDate"], dateRangeData["endDate"], len(stockData)))
+        high_label_content.config(text=dateRangeData["high"])
+        low_label_content.config(text=dateRangeData["low"])
+        avg_label_content.config(text=dateRangeData["avg"])
+        console_label_body.config(text='load from:' + dir)
+        result_btn['state'] = 'normal'
 
-    dateRangeData["avg"] = total / len(stockData)
-    print(dateRangeData)
-    date_label_content.config(text='{}   to  {} / {} days'.format(
-        dateRangeData["startDate"], dateRangeData["endDate"], len(stockData)))
-    high_label_content.config(text=dateRangeData["high"])
-    low_label_content.config(text=dateRangeData["low"])
-    avg_label_content.config(text=dateRangeData["avg"])
-    console_label_body.config(text='load from:' + dir)
 
 
 def clear():
-    global stockData
+    global stockData, adjCloseData
     stockData = []
+    adjCloseData = []
     date_label_content.config(text='')
     high_label_content.config(text='')
     low_label_content.config(text='')
     avg_label_content.config(text='')
     console_label_body.config(text='data cleard')
-
+    result_btn['state'] = 'disabled'
 
 def switchFrame(frame):
     review_label.config(text=frame)
+
+def getResult():
+    global adjCloseData
+    switchFrame('Result')
+    analyze.analyze(adjCloseData)
 
 
 def log_motion_event(event):
@@ -83,9 +83,7 @@ def log_release_event(event):
     global log_drag
     log_drag = False
 
-
 root.title('Stock Py')
-# root.geometry('800x500')
 
 bar_frame = Frame(root)
 review_frame = Frame(root)
@@ -105,24 +103,24 @@ review_btn = Button(bar_frame, text='Review Data', height=3,
 review_btn.grid(row=1, column=0)
 
 result_btn = Button(bar_frame, text='Analyze Result', height=3,
-                    width=45, command=lambda: switchFrame('Result'))
+                    width=45, command=lambda: getResult(), state='disabled')
 result_btn.grid(row=1, column=1)
 
 # review panel
 figure_frame = Frame(review_frame)
 figure_frame.grid(row=1, column=0, sticky='NW')
-label_1w = Label(figure_frame, text='1W', bg='gray65', width='14')
-label_1w.grid(row=0, column=1)
-label_1m = Label(figure_frame, text='1 Month', bg='gray70', width='14')
-label_1m.grid(row=0, column=2)
-label_1y = Label(figure_frame, text='1 Year', bg='gray75', width='14')
-label_1y.grid(row=0, column=3)
-label_3y = Label(figure_frame, text='3 Years', bg='gray80', width='14')
-label_3y.grid(row=0, column=4)
-label_5y = Label(figure_frame, text='5 Years', bg='gray85', width='14')
-label_5y.grid(row=0, column=5)
-maxy_label = Label(figure_frame, text='Max', bg='gray90', width='14')
-maxy_label.grid(row=0, column=6)
+# label_1w = Label(figure_frame, text='1W', bg='gray65', width='14')
+# label_1w.grid(row=0, column=1)
+# label_1m = Label(figure_frame, text='1 Month', bg='gray70', width='14')
+# label_1m.grid(row=0, column=2)
+# label_1y = Label(figure_frame, text='1 Year', bg='gray75', width='14')
+# label_1y.grid(row=0, column=3)
+# label_3y = Label(figure_frame, text='3 Years', bg='gray80', width='14')
+# label_3y.grid(row=0, column=4)
+# label_5y = Label(figure_frame, text='5 Years', bg='gray85', width='14')
+# label_5y.grid(row=0, column=5)
+# maxy_label = Label(figure_frame, text='Max', bg='gray90', width='14')
+# maxy_label.grid(row=0, column=6)
 # canvas_label = Label(figure_frame, height=10, bg='white')
 # canvas_label.grid(row=1, column=0)
 
@@ -154,7 +152,7 @@ console_label_body.grid(row=1, column=0, sticky='NW')
 
 
 console_canvas = Canvas(review_frame, width=810,
-                        height=300)  # , highlightthickness=0
+                        height=300)
 console_canvas.bind('<B1-Motion>', log_motion_event)
 console_canvas.bind('<ButtonRelease-1>', log_release_event)
 console_canvas.focus_set()
@@ -180,6 +178,7 @@ console_frame.grid(row=2, column=0, sticky='NW')
 
 # initialize stock data
 stockData = []
+adjCloseData = []
 dateRangeData = {"startDate": "", "endDate": "",
                  "high": "", "low": "", "avg": ""}
 
