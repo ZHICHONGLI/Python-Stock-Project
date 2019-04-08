@@ -14,6 +14,7 @@ import analyze
 
 root = Tk()
 
+
 def load():
     dir = filedialog.askopenfilename(initialdir="/",
                                      filetypes=(("CSV File", "*.csv"),
@@ -21,10 +22,10 @@ def load():
                                      title="Choose a file."
                                      )
     global stockData, dateRangeData, adjCloseData
-    if dir :
+    if dir:
         with open(dir) as f:
             stockData = [{k: v for k, v in row.items()}
-                        for row in csv.DictReader(f, skipinitialspace=True)]
+                         for row in csv.DictReader(f, skipinitialspace=True)]
         adjCloseData = pd.read_csv(dir, usecols=['Adj Close'])
         dateRangeData = analyze.getDateRangeData(stockData)
 
@@ -36,10 +37,11 @@ def load():
         console_label_body.config(text='loaded from:' + dir)
         result_btn['state'] = 'normal'
 
-        #plot 120 days history data
+        # plot 120 days history data
         x = np.array([o['Date'] for o in stockData[-120:]])
         y = np.array([o['Close'] for o in stockData[-120:]]).astype(np.float)
         plotCanvas(x, y, "History Data", "Price", "Date")
+
 
 def clear():
     global stockData, adjCloseData
@@ -51,40 +53,46 @@ def clear():
     avg_label_content.config(text='')
     console_label_body.config(text='data cleard')
     result_btn['state'] = 'disabled'
-    fig = Figure(figsize=(8,4))
+    fig = Figure(figsize=(8, 4))
     canvas = FigureCanvasTkAgg(fig, master=console_canvas)
     canvas.get_tk_widget().grid(row=0, column=0)
     canvas.draw()
 
-def switchFrame(frame):
-    review_label.config(text=frame)
 
-def reviewData():
-    switchFrame('Review')
-    global stockData
-    if stockData:
-        x = np.array([o['Date'] for o in stockData[-120:]])
-        y = np.array([o['Close'] for o in stockData[-120:]]).astype(np.float)
-        plotCanvas(x, y, "History Data", "Price", "Date")
+class dataSwitch():
 
-def getResult():
-    global adjCloseData
-    switchFrame('Result')
-    resuls = analyze.analyze(adjCloseData)
-    x = np.arange(1,31)
-    plotCanvas(x, resuls, 'Prediction', 'Price', 'Days')
+    def switchFrame(self, frame):
+        review_label.config(text=frame)
+
+    def getResult(self):
+        global adjCloseData
+        self.switchFrame('Result')
+        resuls = analyze.analyze(adjCloseData)
+        x = np.arange(1, 31)
+        plotCanvas(x, resuls, 'Prediction', 'Price', 'Days')
+
+    def reviewData(self):
+        self.switchFrame('Review')
+        global stockData
+        if stockData:
+            x = np.array([o['Date'] for o in stockData[-120:]])
+            y = np.array([o['Close']
+                          for o in stockData[-120:]]).astype(np.float)
+            plotCanvas(x, y, "History Data", "Price", "Date")
+
 
 def plotCanvas(x, y, title, ylabel, xlabel):
-    fig = Figure(figsize=(8,4))
+    fig = Figure(figsize=(8, 4))
     a = fig.add_subplot(111)
-    a.plot(x,y,color='blue')
-    a.set_title (title, fontsize=10)
+    a.plot(x, y, color='blue')
+    a.set_title(title, fontsize=10)
     a.set_ylabel(ylabel, fontsize=10)
     a.set_xlabel(xlabel, fontsize=10)
 
     canvas = FigureCanvasTkAgg(fig, master=console_canvas)
     canvas.get_tk_widget().grid(row=0, column=0)
     canvas.draw()
+
 
 def log_motion_event(event):
     global log_drag, x1, x2, y1, y2, mouse_x, mouse_y
@@ -103,9 +111,11 @@ def log_motion_event(event):
     mouse_x = x
     mouse_y = y
 
+
 def log_release_event(event):
     global log_drag
     log_drag = False
+
 
 root.title('Stock Py')
 
@@ -123,11 +133,11 @@ clear_btn = Button(bar_frame, text='Clear', height=3, width=45, command=clear)
 clear_btn.grid(row=0, column=1)
 
 review_btn = Button(bar_frame, text='Review Data', height=3,
-                    width=45, command=lambda: reviewData())
+                    width=45, command=lambda: dataSwitch().reviewData())
 review_btn.grid(row=1, column=0)
 
 result_btn = Button(bar_frame, text='Analyze Result', height=3,
-                    width=45, command=lambda: getResult(), state='disabled')
+                    width=45, command=lambda: dataSwitch().getResult(), state='disabled')
 result_btn.grid(row=1, column=1)
 
 # review panel
