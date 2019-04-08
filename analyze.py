@@ -4,23 +4,20 @@ from sklearn import preprocessing, model_selection, svm
 import quandl
 
 def analyze(data, days = 30):
-    # df = quandl.get("WIKI/AAPL")
-    # print(df)
-    # df = df[['Adj. Close']]
-    # df = data[['Adj. Close']]
     df = data
-    # print(df)
-    forecast_out = int(days) # predicting 30 days into future
-    df['Prediction'] = df[['Adj Close']].shift(-forecast_out) #  label column with data shifted 30 units up
+    # set predicting {days} into future
+    forecast_out = int(days) 
+    # data column shifted 30 units up
+    df['Prediction'] = df[['Adj Close']].shift(-forecast_out) 
     # print(df)
     X = np.array(df.drop(['Prediction'], 1))
     X = preprocessing.scale(X)
-    X_forecast = X[-forecast_out:] # set X_forecast equal to last 30
-    X = X[:-forecast_out] # remove last 30 from X
-    # print(X_forecast, X)
+    # set X_forecast equal to last 30
+    X_forecast = X[-forecast_out:] 
+    # remove last 30 from X
+    X = X[:-forecast_out] 
     y = np.array(df['Prediction'])
     y = y[:-forecast_out]
-    # print('y :', y)
 
     X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size = 0.2)
 
@@ -30,9 +27,8 @@ def analyze(data, days = 30):
     # Testing
     confidence = clf.score(X_test, y_test)
     print("confidence: ", confidence)
-
+    #  Result
     forecast_prediction = clf.predict(X_forecast)
-    print(forecast_prediction)
 
     return forecast_prediction
 

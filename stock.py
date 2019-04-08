@@ -9,11 +9,11 @@ mpl.use('TkAgg')
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import matplotlib.dates as mdates
-# from matplotlib.finance import candlestick_ohlc
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
 import analyze
 
 root = Tk()
-
 
 def load():
     dir = filedialog.askopenfilename(initialdir="/",
@@ -30,7 +30,6 @@ def load():
         adjCloseData = pd.read_csv(dir, usecols=['Adj Close'])
         dateRangeData = analyze.getDateRangeData(stockData)
 
-        print(dateRangeData)
         date_label_content.config(text='{}   to  {} / {} days'.format(
             dateRangeData["startDate"], dateRangeData["endDate"], len(stockData)))
         high_label_content.config(text=dateRangeData["high"])
@@ -39,7 +38,19 @@ def load():
         console_label_body.config(text='load from:' + dir)
         result_btn['state'] = 'normal'
 
+        #plot
+        x = np.array([o['Date'] for o in stockData[-30:]])
+        y = np.array([o['Close'] for o in stockData[-30:]]).astype(np.float)
+        fig = Figure(figsize=(8,4))
+        a = fig.add_subplot(111)
+        a.plot(x,y,color='blue')
+        a.set_title ("History Data", fontsize=10)
+        a.set_ylabel("Price", fontsize=10)
+        a.set_xlabel("Date", fontsize=10)
 
+        canvas = FigureCanvasTkAgg(fig, master=console_canvas)
+        canvas.get_tk_widget().grid(row=0, column=0)
+        canvas.draw()
 
 def clear():
     global stockData, adjCloseData
@@ -60,7 +71,6 @@ def getResult():
     switchFrame('Result')
     analyze.analyze(adjCloseData)
 
-
 def log_motion_event(event):
     global log_drag, x1, x2, y1, y2, mouse_x, mouse_y
     x = event.x
@@ -77,7 +87,6 @@ def log_motion_event(event):
     console_canvas.coords(rect, x1, y1, x2, y2)
     mouse_x = x
     mouse_y = y
-
 
 def log_release_event(event):
     global log_drag
@@ -150,9 +159,8 @@ console_label_body = Label(console_frame, height=1,
                            width=90, bg='gray95')
 console_label_body.grid(row=1, column=0, sticky='NW')
 
-
 console_canvas = Canvas(review_frame, width=810,
-                        height=300)
+                        height=400)
 console_canvas.bind('<B1-Motion>', log_motion_event)
 console_canvas.bind('<ButtonRelease-1>', log_release_event)
 console_canvas.focus_set()
@@ -172,7 +180,6 @@ review_label = Label(bar_frame, height=3, width=90,
 review_label.grid(row=2, column=0, columnspan='40')
 bar_frame.grid(row=0, column=0)
 review_frame.grid(row=1)
-# result_frame.grid(row=1, column=0)
 console_frame.grid(row=2, column=0, sticky='NW')
 
 
@@ -181,6 +188,5 @@ stockData = []
 adjCloseData = []
 dateRangeData = {"startDate": "", "endDate": "",
                  "high": "", "low": "", "avg": ""}
-
 
 mainloop()
