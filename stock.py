@@ -3,7 +3,6 @@ from tkinter import filedialog
 import csv
 import numpy as np
 import pandas as pd
-from datetime import datetime
 import matplotlib as mpl
 mpl.use('TkAgg')
 import matplotlib.pyplot as plt
