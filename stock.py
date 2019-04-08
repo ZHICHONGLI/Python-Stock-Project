@@ -26,7 +26,6 @@ def load():
         with open(dir) as f:
             stockData = [{k: v for k, v in row.items()}
                         for row in csv.DictReader(f, skipinitialspace=True)]
-        print(stockData)
         adjCloseData = pd.read_csv(dir, usecols=['Adj Close'])
         dateRangeData = analyze.getDateRangeData(stockData)
 
@@ -38,19 +37,10 @@ def load():
         console_label_body.config(text='load from:' + dir)
         result_btn['state'] = 'normal'
 
-        #plot
-        x = np.array([o['Date'] for o in stockData[-30:]])
-        y = np.array([o['Close'] for o in stockData[-30:]]).astype(np.float)
-        fig = Figure(figsize=(8,4))
-        a = fig.add_subplot(111)
-        a.plot(x,y,color='blue')
-        a.set_title ("History Data", fontsize=10)
-        a.set_ylabel("Price", fontsize=10)
-        a.set_xlabel("Date", fontsize=10)
-
-        canvas = FigureCanvasTkAgg(fig, master=console_canvas)
-        canvas.get_tk_widget().grid(row=0, column=0)
-        canvas.draw()
+        #plot 120 days history data
+        x = np.array([o['Date'] for o in stockData[-120:]])
+        y = np.array([o['Close'] for o in stockData[-120:]]).astype(np.float)
+        plotCanvas(x, y, "History Data", "Price", "Date")
 
 def clear():
     global stockData, adjCloseData
@@ -66,10 +56,32 @@ def clear():
 def switchFrame(frame):
     review_label.config(text=frame)
 
+def reviewData():
+    switchFrame('Review')
+    global stockData
+    if stockData:
+        x = np.array([o['Date'] for o in stockData[-120:]])
+        y = np.array([o['Close'] for o in stockData[-120:]]).astype(np.float)
+        plotCanvas(x, y, "History Data", "Price", "Date")
+
 def getResult():
     global adjCloseData
     switchFrame('Result')
-    analyze.analyze(adjCloseData)
+    resuls = analyze.analyze(adjCloseData)
+    x = np.arange(1,31)
+    plotCanvas(x, resuls, 'Prediction', 'Price', 'Days')
+
+def plotCanvas(x, y, title, ylabel, xlabel):
+    fig = Figure(figsize=(8,4))
+    a = fig.add_subplot(111)
+    a.plot(x,y,color='blue')
+    a.set_title (title, fontsize=10)
+    a.set_ylabel(ylabel, fontsize=10)
+    a.set_xlabel(xlabel, fontsize=10)
+
+    canvas = FigureCanvasTkAgg(fig, master=console_canvas)
+    canvas.get_tk_widget().grid(row=0, column=0)
+    canvas.draw()
 
 def log_motion_event(event):
     global log_drag, x1, x2, y1, y2, mouse_x, mouse_y
@@ -108,7 +120,7 @@ clear_btn = Button(bar_frame, text='Clear', height=3, width=45, command=clear)
 clear_btn.grid(row=0, column=1)
 
 review_btn = Button(bar_frame, text='Review Data', height=3,
-                    width=45, command=lambda: switchFrame('Review'))
+                    width=45, command=lambda: reviewData())
 review_btn.grid(row=1, column=0)
 
 result_btn = Button(bar_frame, text='Analyze Result', height=3,

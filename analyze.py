@@ -7,14 +7,14 @@ def analyze(data, days = 30):
     df = data
     # set predicting {days} into future
     forecast_out = int(days) 
-    # data column shifted 30 units up
+    # data column shifted {days} up
     df['Prediction'] = df[['Adj Close']].shift(-forecast_out) 
     # print(df)
     X = np.array(df.drop(['Prediction'], 1))
     X = preprocessing.scale(X)
-    # set X_forecast equal to last 30
+    # set X_forecast
     X_forecast = X[-forecast_out:] 
-    # remove last 30 from X
+    # remove last {days} from X
     X = X[:-forecast_out] 
     y = np.array(df['Prediction'])
     y = y[:-forecast_out]
