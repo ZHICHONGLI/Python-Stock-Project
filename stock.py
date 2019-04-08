@@ -33,7 +33,7 @@ def load():
         high_label_content.config(text=dateRangeData["high"])
         low_label_content.config(text=dateRangeData["low"])
         avg_label_content.config(text=dateRangeData["avg"])
-        console_label_body.config(text='load from:' + dir)
+        console_label_body.config(text='loaded from:' + dir)
         result_btn['state'] = 'normal'
 
         #plot 120 days history data
@@ -51,6 +51,10 @@ def clear():
     avg_label_content.config(text='')
     console_label_body.config(text='data cleard')
     result_btn['state'] = 'disabled'
+    fig = Figure(figsize=(8,4))
+    canvas = FigureCanvasTkAgg(fig, master=console_canvas)
+    canvas.get_tk_widget().grid(row=0, column=0)
+    canvas.draw()
 
 def switchFrame(frame):
     review_label.config(text=frame)
