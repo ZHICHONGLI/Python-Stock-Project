@@ -4,34 +4,33 @@ from sklearn import preprocessing, model_selection, svm
 
 
 def analyze(data, days=30):
-    df = data
+    dataFrame = data
     # set predicting {days} into future
-    forecast_out = int(days)
+    forecastLength = int(days)
     # data column shifted {days} up
-    df['Prediction'] = df[['Adj Close']].shift(-forecast_out)
-    # print(df)
-    X = np.array(df.drop(['Prediction'], 1))
+    dataFrame['Prediction'] = dataFrame[['Adj Close']].shift(-forecastLength)
+    X = np.array(dataFrame.drop(['Prediction'], 1))
     X = preprocessing.scale(X)
     # set X_forecast
-    X_forecast = X[-forecast_out:]
+    X_forecast = X[-forecastLength:]
     # remove last {days} from X
-    X = X[:-forecast_out]
-    y = np.array(df['Prediction'])
-    y = y[:-forecast_out]
+    X = X[:-forecastLength]
+    y = np.array(dataFrame['Prediction'])
+    y = y[:-forecastLength]
 
     X_train, X_test, y_train, y_test = model_selection.train_test_split(
         X, y, test_size=0.2)
 
     # Training
-    clf = LinearRegression()
-    clf.fit(X_train, y_train)
+    linear = LinearRegression()
+    linear.fit(X_train, y_train)
     # Testing
-    confidence = clf.score(X_test, y_test)
-    print("confidence: ", confidence)
+    accurate = linear.score(X_test, y_test)
+    print("accurate: ", accurate)
     #  Result
-    forecast_prediction = clf.predict(X_forecast)
+    prediction = linear.predict(X_forecast)
 
-    return forecast_prediction
+    return prediction
 
 
 def getDateRangeData(stockData):
